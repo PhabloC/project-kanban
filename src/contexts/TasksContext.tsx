@@ -1,11 +1,15 @@
-import React, { createContext, useEffect, useState, type ReactNode } from "react";
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Task } from "../entities/Task";
 import { tasksService } from "../services/api";
 
-
 export interface TasksContextData {
   tasks: Task[];
-  createTask: (attributes: Omit<Task, "id">) => Promise<Task>;
+  createTask: (attributes: Omit<Task, "id">) => Promise<void>;
   updateTask: (
     id: number,
     attributes: Partial<Omit<Task, "id">>
@@ -20,22 +24,29 @@ interface TasksContextProviderProps {
 }
 
 export const TasksContextProvider: React.FC<TasksContextProviderProps> = ({
-  children
+  children,
 }) => {
-  const[tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
-useEffect(() => {
-  tasksService.fetchTasks().then((data)) => setTasks(data));
-})
+  useEffect(() => {
+    tasksService.fetchTasks().then((data) => setTasks(data));
+  }, []);
+
+  const createTask = async (attributes: Omit<Task, "id">) => {
+    const newTask = await tasksService.createTask(attributes);
+    setTasks((currentState) => [...currentState, newTask]);
+  };
+
+  const updateTask = async (
+    id: number,
+    attributes: Partial<Omit<Task, "id">>
+  ) => {};
+
+  const deleteTask = async (id: number) => {};
 
   return (
     <TasksContext.Provider
-      value={{
-        tasks: [],
-        createTask: async () => ({} as Task),
-        updateTask: async () => {},
-        deleteTask: async () => {},
-      }}
+      value={{ tasks, createTask, updateTask, deleteTask }}
     >
       {children}
     </TasksContext.Provider>
